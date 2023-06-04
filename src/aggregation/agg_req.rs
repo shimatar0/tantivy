@@ -34,7 +34,7 @@ use super::bucket::{
     DateHistogramAggregationReq, HistogramAggregation, RangeAggregation, TermsAggregation,
 };
 use super::metric::{
-    AverageAggregation, CountAggregation, MaxAggregation, MinAggregation,
+    AverageAggregation, CountAggregation, ExtendedStatsAggregation, MaxAggregation, MinAggregation,
     PercentilesAggregationReq, StatsAggregation, SumAggregation,
 };
 
@@ -114,6 +114,8 @@ pub enum AggregationVariants {
     /// extracted values.
     #[serde(rename = "stats")]
     Stats(StatsAggregation),
+    #[serde(rename = "extended_stats")]
+    ExtendedStats(ExtendedStatsAggregation),
     /// Computes the sum of the extracted values.
     #[serde(rename = "sum")]
     Sum(SumAggregation),
@@ -136,6 +138,7 @@ impl AggregationVariants {
             AggregationVariants::Stats(stats) => stats.field_name(),
             AggregationVariants::Sum(sum) => sum.field_name(),
             AggregationVariants::Percentiles(per) => per.field_name(),
+            AggregationVariants::ExtendedStats(stats) => stats.field_name(),
         }
     }
 

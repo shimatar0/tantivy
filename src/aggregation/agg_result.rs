@@ -8,7 +8,7 @@ use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
 use super::bucket::GetDocCount;
-use super::metric::{PercentilesMetricResult, SingleMetricResult, Stats};
+use super::metric::{ExtendedStats, PercentilesMetricResult, SingleMetricResult, Stats};
 use super::{AggregationError, Key};
 use crate::TantivyError;
 
@@ -92,6 +92,7 @@ pub enum MetricResult {
     Sum(SingleMetricResult),
     /// Sum metric result.
     Percentiles(PercentilesMetricResult),
+    ExtendedStats(ExtendedStats),
 }
 
 impl MetricResult {
@@ -106,6 +107,7 @@ impl MetricResult {
             MetricResult::Percentiles(_) => Err(TantivyError::AggregationError(
                 AggregationError::InvalidRequest("percentiles can't be used to order".to_string()),
             )),
+            MetricResult::ExtendedStats(stats) => stats.get_value(agg_property),
         }
     }
 }

@@ -11,9 +11,9 @@ use super::agg_req_with_accessor::{AggregationWithAccessor, AggregationsWithAcce
 use super::bucket::{SegmentHistogramCollector, SegmentRangeCollector, SegmentTermCollector};
 use super::intermediate_agg_result::IntermediateAggregationResults;
 use super::metric::{
-    AverageAggregation, CountAggregation, MaxAggregation, MinAggregation,
-    SegmentPercentilesCollector, SegmentStatsCollector, SegmentStatsType, StatsAggregation,
-    SumAggregation,
+    AverageAggregation, CountAggregation, ExtendedStatsAggregation, MaxAggregation, MinAggregation,
+    SegmentExtendedStatsCollector, SegmentExtendedStatsType, SegmentPercentilesCollector,
+    SegmentStatsCollector, SegmentStatsType, StatsAggregation, SumAggregation,
 };
 use crate::aggregation::bucket::SegmentTermCollectorComposite;
 
@@ -48,7 +48,8 @@ pub(crate) trait CollectorClone {
 }
 
 impl<T> CollectorClone for T
-where T: 'static + SegmentAggregationCollector + Clone
+where
+    T: 'static + SegmentAggregationCollector + Clone,
 {
     fn clone_box(&self) -> Box<dyn SegmentAggregationCollector> {
         Box::new(self.clone())
@@ -157,6 +158,13 @@ pub(crate) fn build_single_agg_segment_collector(
                 accessor_idx,
             )?,
         )),
+        ExtendedStats(ExtendedStatsAggregation { .. }) => {
+            Ok(Box::new(SegmentExtendedStatsCollector::from_req(
+                req.field_type,
+                SegmentExtendedStatsType::ExtendedStats,
+                accessor_idx,
+            )))
+        }
     }
 }
 

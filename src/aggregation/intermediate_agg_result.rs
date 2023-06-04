@@ -18,8 +18,8 @@ use super::bucket::{
     GetDocCount, Order, OrderTarget, RangeAggregation, TermsAggregation,
 };
 use super::metric::{
-    IntermediateAverage, IntermediateCount, IntermediateMax, IntermediateMin, IntermediateStats,
-    IntermediateSum, PercentilesCollector,
+    IntermediateAverage, IntermediateCount, IntermediateExtendedStats, IntermediateMax,
+    IntermediateMin, IntermediateStats, IntermediateSum, PercentilesCollector,
 };
 use super::segment_agg_result::AggregationLimits;
 use super::{format_date, AggregationError, Key, SerializedKey};
@@ -195,6 +195,9 @@ pub(crate) fn empty_from_req(req: &Aggregation) -> IntermediateAggregationResult
         Percentiles(_) => IntermediateAggregationResult::Metric(
             IntermediateMetricResult::Percentiles(PercentilesCollector::default()),
         ),
+        ExtendedStats(_) => IntermediateAggregationResult::Metric(
+            IntermediateMetricResult::ExtendedStats(IntermediateExtendedStats::default()),
+        ),
     }
 }
 
@@ -255,6 +258,7 @@ pub enum IntermediateMetricResult {
     Stats(IntermediateStats),
     /// Intermediate sum result.
     Sum(IntermediateSum),
+    ExtendedStats(IntermediateExtendedStats),
 }
 
 impl IntermediateMetricResult {
@@ -282,6 +286,9 @@ impl IntermediateMetricResult {
                 percentiles
                     .into_final_result(req.agg.as_percentile().expect("unexpected metric type")),
             ),
+            IntermediateMetricResult::ExtendedStats(intermediate_extent_stats) => {
+                MetricResult::ExtendedStats(intermediate_extent_stats.finalize())
+            }
         }
     }
 
@@ -319,6 +326,12 @@ impl IntermediateMetricResult {
                 IntermediateMetricResult::Percentiles(right),
             ) => {
                 left.merge_fruits(right)?;
+            }
+            (
+                IntermediateMetricResult::ExtendedStats(extended_stats_left),
+                IntermediateMetricResult::ExtendedStats(extended_stats_right),
+            ) => {
+                extended_stats_left.merge_fruits(extended_stats_right);
             }
             _ => {
                 panic!("incompatible fruit types in tree or missing merge_fruits handler");

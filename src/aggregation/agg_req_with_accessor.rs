@@ -8,8 +8,8 @@ use super::bucket::{
     DateHistogramAggregationReq, HistogramAggregation, RangeAggregation, TermsAggregation,
 };
 use super::metric::{
-    AverageAggregation, CountAggregation, MaxAggregation, MinAggregation, StatsAggregation,
-    SumAggregation,
+    AverageAggregation, CountAggregation, ExtendedStatsAggregation, MaxAggregation, MinAggregation,
+    StatsAggregation, SumAggregation,
 };
 use super::segment_agg_result::AggregationLimits;
 use super::VecWithNames;
@@ -91,6 +91,7 @@ impl AggregationWithAccessor {
             | Max(MaxAggregation { field: field_name })
             | Min(MinAggregation { field: field_name })
             | Stats(StatsAggregation { field: field_name })
+            | ExtendedStats(ExtendedStatsAggregation { field: field_name })
             | Sum(SumAggregation { field: field_name }) => {
                 let (accessor, field_type) =
                     get_ff_reader(reader, field_name, Some(get_numeric_or_date_column_types()))?;
